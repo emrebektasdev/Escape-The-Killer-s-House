@@ -116,8 +116,16 @@ namespace PuzzleGame.EditorTools
             inventoryUIObj.transform.SetParent(canvas.transform, false);
             SetStretchRect(inventoryUIObj.AddComponent<RectTransform>());
 
-            GameObject btnInvObj = CreateButton("BtnInventory", inventoryUIObj.transform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(80, 80), new Vector2(-60, -60));
+            Transform btnInvT = canvas.transform.Find("BtnBackpack");
+            GameObject btnInvObj = btnInvT != null ? btnInvT.gameObject : CreateButton("BtnBackpack", canvas.transform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(80, 80), new Vector2(60, -60));
             Button btnInv = btnInvObj.GetComponent<Button>();
+            btnInvObj.transform.SetAsLastSibling();
+
+            Transform btnBackInvT = canvas.transform.Find("BtnBack_Inventory");
+            GameObject btnBackInvObj = btnBackInvT != null ? btnBackInvT.gameObject : CreateButton("BtnBack_Inventory", canvas.transform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(100, 50), new Vector2(-60, -30));
+            Button btnBackInv = btnBackInvObj.GetComponent<Button>();
+            btnBackInvObj.transform.SetAsLastSibling();
+            btnBackInvObj.SetActive(false); // Default hidden
 
             GameObject invContainerObj = new GameObject("InventoryContainer");
             invContainerObj.transform.SetParent(inventoryUIObj.transform, false);
@@ -127,23 +135,7 @@ namespace PuzzleGame.EditorTools
             blurBgObj.transform.SetParent(invContainerObj.transform, false);
             SetStretchRect(blurBgObj.AddComponent<RectTransform>());
             Image blurBgImg = blurBgObj.AddComponent<Image>();
-            blurBgImg.color = new Color(1, 1, 1, 1f); 
-            
-            if (!System.IO.Directory.Exists("Assets/Materials")) {
-                System.IO.Directory.CreateDirectory("Assets/Materials");
-                UnityEditor.AssetDatabase.Refresh();
-            }
-            Material blurMat = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/InventoryBlurMat.mat");
-            if (blurMat == null) {
-                Shader blurShader = Shader.Find("Custom/UIBlur");
-                if (blurShader != null) {
-                    blurMat = new Material(blurShader);
-                    blurMat.SetFloat("_Radius", 3f);
-                    blurMat.SetColor("_Tint", new Color(0.1f, 0.1f, 0.1f, 0.8f));
-                    UnityEditor.AssetDatabase.CreateAsset(blurMat, "Assets/Materials/InventoryBlurMat.mat");
-                }
-            }
-            if (blurMat != null) blurBgImg.material = blurMat;
+            blurBgImg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f); // Changed from GrabPass material to standard transparent color to support URP/SRP 
 
             GameObject invPanelObj = new GameObject("InventoryPanel");
             invPanelObj.transform.SetParent(invContainerObj.transform, false);
@@ -166,6 +158,12 @@ namespace PuzzleGame.EditorTools
             InventoryUIManager invUIManager = inventoryUIObj.AddComponent<InventoryUIManager>();
             invUIManager.inventoryPanel = invContainerObj;
             invUIManager.slotImages = new Image[6];
+            
+            // Link new Global UI fields
+            invUIManager.leftArrowButton = btnLeftObj;
+            invUIManager.rightArrowButton = btnRightObj;
+            invUIManager.backpackButton = btnInvObj;
+            invUIManager.backButton = btnBackInvObj;
 
             for (int i = 0; i < 6; i++) {
                 GameObject slotObj = new GameObject($"Slot_{i}");
@@ -187,6 +185,10 @@ namespace PuzzleGame.EditorTools
 
             UnityEngine.Events.UnityAction toggleAction = new UnityEngine.Events.UnityAction(invUIManager.ToggleInventory);
             UnityEditor.Events.UnityEventTools.AddPersistentListener(btnInv.onClick, toggleAction);
+            
+            UnityEngine.Events.UnityAction invBackAction = new UnityEngine.Events.UnityAction(invUIManager.CloseInventory);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnBackInv.onClick, invBackAction);
+            
             invContainerObj.SetActive(false);
 
             // 6.7 Pickup Animator
@@ -233,6 +235,9 @@ namespace PuzzleGame.EditorTools
 
             GameObject btnBackObj = CreateButton("BtnBack", zoomPanelObj.transform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(100, 50), new Vector2(-60, -30));
             Button btnBack = btnBackObj.GetComponent<Button>();
+            
+            zoomUIManager.backpackButton = btnInvObj;
+            zoomUIManager.backButton = btnBackObj;
             
             UnityEngine.Events.UnityAction backAction = new UnityEngine.Events.UnityAction(zoomUIManager.CloseZoom);
             UnityEditor.Events.UnityEventTools.AddPersistentListener(btnBack.onClick, backAction);

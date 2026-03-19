@@ -15,6 +15,16 @@ namespace PuzzleGame.UI
         [Tooltip("The 6 image slots in the inventory grid.")]
         public Image[] slotImages;
 
+        [Header("Global UI References")]
+        [Tooltip("The left navigation arrow to hide when inventory is open.")]
+        public GameObject leftArrowButton;
+        [Tooltip("The right navigation arrow to hide when inventory is open.")]
+        public GameObject rightArrowButton;
+        [Tooltip("The back button to show when inventory is open (closes the inventory).")]
+        public GameObject backButton;
+        [Tooltip("The backpack button to ensure is shown.")]
+        public GameObject backpackButton;
+
         private bool isOpen = false;
 
         private void Awake()
@@ -35,6 +45,16 @@ namespace PuzzleGame.UI
             {
                 inventoryPanel.SetActive(false);
             }
+            
+            // Back button should be off by default if inventory is off
+            if (backButton != null)
+            {
+                backButton.SetActive(false);
+            }
+            
+            // Backpack should be on by default
+            if (backpackButton != null) backpackButton.SetActive(true);
+            
             ClearAllSlots();
         }
 
@@ -43,11 +63,44 @@ namespace PuzzleGame.UI
             if (inventoryPanel == null) return;
 
             isOpen = !isOpen;
+            
+            // Toggle panel
             inventoryPanel.SetActive(isOpen);
+            if (isOpen) 
+            {
+                inventoryPanel.transform.SetAsLastSibling();
+                transform.SetAsLastSibling(); // Bring the whole InventoryUI parent to front of Canvas
+            }
+            
+            // Toggle navigation arrows (Hide if open, show if closed)
+            if (leftArrowButton != null) leftArrowButton.SetActive(!isOpen);
+            if (rightArrowButton != null) rightArrowButton.SetActive(!isOpen);
+            
+            // Toggle back button (Show if open, hide if closed)
+            if (backButton != null) 
+            {
+                backButton.SetActive(isOpen);
+                if (isOpen) backButton.transform.SetAsLastSibling();
+            }
+            
+            // Ensure backpack button is always on as per request
+            if (backpackButton != null) 
+            {
+                backpackButton.SetActive(true);
+                if (isOpen) backpackButton.transform.SetAsLastSibling();
+            }
 
             if (isOpen)
             {
                 RefreshUI();
+            }
+        }
+
+        public void CloseInventory()
+        {
+            if (isOpen)
+            {
+                ToggleInventory();
             }
         }
 

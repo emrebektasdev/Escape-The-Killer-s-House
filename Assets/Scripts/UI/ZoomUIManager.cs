@@ -15,6 +15,12 @@ namespace PuzzleGame.UI
         [Tooltip("The Image component that displays the zoomed sprite")]
         public Image zoomImage;
 
+        [Header("Global UI References")]
+        [Tooltip("The back button to show when zooming (exits zoom).")]
+        public GameObject backButton;
+        [Tooltip("The backpack button to ensure is shown during zoom.")]
+        public GameObject backpackButton;
+
         [Header("Message System")]
         [Tooltip("TextMeshPro component to display locked/hint messages")]
         public TextMeshProUGUI messageText;
@@ -95,6 +101,10 @@ namespace PuzzleGame.UI
             {
                 messageText.gameObject.SetActive(false);
             }
+
+            // Ensure Backpack is on by default and back button is off
+            if (backpackButton != null) backpackButton.SetActive(true);
+            if (backButton != null) backButton.SetActive(false);
         }
 
         public void OpenZoom(string hotspotId, Sprite sprite, string lockedMessage = "")
@@ -115,6 +125,14 @@ namespace PuzzleGame.UI
                 zoomImage.sprite = sprite;
                 currentLockedMessage = lockedMessage;
                 
+                // Manage buttons
+                if (backButton != null) backButton.SetActive(true);
+                if (backpackButton != null) 
+                {
+                    backpackButton.SetActive(true);
+                    backpackButton.transform.SetAsLastSibling(); // Ensure it draws on top!
+                }
+                
                 if (zoomCoroutine != null) StopCoroutine(zoomCoroutine);
                 zoomCoroutine = StartCoroutine(AnimateZoom(true));
                 
@@ -131,7 +149,10 @@ namespace PuzzleGame.UI
             if (zoomPanel != null)
             {
                 currentLockedMessage = "";
-                
+
+                // Turn off back button, keep backpack on if needed elsewhere
+                if (backButton != null) backButton.SetActive(false);
+
                 if (zoomCoroutine != null) StopCoroutine(zoomCoroutine);
                 zoomCoroutine = StartCoroutine(AnimateZoom(false));
 
