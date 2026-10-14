@@ -1,0 +1,3 @@
+# Exact historical false-positive fingerprints for Firebase client configuration.
+# Firebase API keys are public identifiers restricted to Firebase APIs.
+# No future commit, file or value is broadly excluded.
